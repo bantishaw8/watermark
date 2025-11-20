@@ -22,15 +22,15 @@ export class WatermarkRemover {
       return this.copyVideo(videoPath, outputPath);
     }
 
-    // Build filter complex for watermark removal
-    const filters = this.buildRemovalFilters(watermarkRegions);
+    // Build filter string for watermark removal
+    const filterString = this.buildRemovalFilterString(watermarkRegions);
 
     return new Promise((resolve, reject) => {
       const command = ffmpeg(videoPath);
 
       // Apply delogo filters for each watermark region
-      if (filters.length > 0) {
-        command.complexFilter(filters);
+      if (filterString) {
+        command.videoFilters(filterString);
       }
 
       command
@@ -63,38 +63,22 @@ export class WatermarkRemover {
     });
   }
 
-  buildRemovalFilters(watermarkRegions) {
-    const filters = [];
+  buildRemovalFilterString(watermarkRegions) {
+    const filterParts = [];
 
     watermarkRegions.forEach((region, index) => {
       // Use delogo filter to blur/remove watermark
       // The delogo filter removes a TV logo by a simple interpolation of surrounding pixels
-      const delogoFilter = {
-        filter: 'delogo',
-        options: {
-          x: region.x,
-          y: region.y,
-          w: region.width,
-          h: region.height,
-          show: 0 // Set to 1 to show the watermark box
-        }
-      };
-
-      filters.push(delogoFilter);
-
-      // Optional: Add additional smoothing for better results
-      if (this.config.blendEdges) {
-        filters.push({
-          filter: 'boxblur',
-          options: {
-            luma_radius: 2,
-            luma_power: 1
-          }
-        });
-      }
+      const delogoFilter = `delogo=x=${region.x}:y=${region.y}:w=${region.width}:h=${region.height}:show=0`;
+      filterParts.push(delogoFilter);
     });
 
-    return filters;
+    return filterParts.join(',');
+  }
+
+  buildRemovalFilters(watermarkRegions) {
+    // Legacy method - kept for backwards compatibility
+    return this.buildRemovalFilterString(watermarkRegions);
   }
 
   async removeWithInpainting(videoPath, watermarkRegions, outputPath, tempDir) {
