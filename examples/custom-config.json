@@ -1,0 +1,43 @@
+{
+  "output": {
+    "directory": "./my-output",
+    "format": "mp4",
+    "quality": "high",
+    "resolution": {
+      "width": 3840,
+      "height": 2160
+    }
+  },
+  "processing": {
+    "tempDirectory": "./temp",
+    "cleanupTemp": true,
+    "parallelProcessing": false
+  },
+  "watermark": {
+    "detection": {
+      "method": "auto",
+      "sensitivity": 0.8,
+      "minSize": 30,
+      "maxSize": 600,
+      "sampleFrames": 15
+    },
+    "removal": {
+      "method": "inpaint",
+      "iterations": 5,
+      "blendEdges": true
+    }
+  },
+  "enhancement": {
+    "enabled": true,
+    "upscale": true,
+    "denoise": true,
+    "sharpen": true,
+    "quality": "high"
+  },
+  "downloader": {
+    "timeout": 600000,
+    "maxRetries": 5,
+    "quality": "best",
+    "format": "mp4"
+  }
+}
