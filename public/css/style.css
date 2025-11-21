@@ -426,6 +426,78 @@ body {
     color: var(--text-secondary);
 }
 
+/* Region Selection Section */
+.region-section {
+    text-align: center;
+}
+
+.region-card {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.region-card h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.region-subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin-bottom: 32px;
+}
+
+.video-canvas-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto 24px;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px var(--shadow);
+}
+
+#regionVideo {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+#regionCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+}
+
+.region-controls {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.region-help {
+    background: var(--bg-secondary);
+    padding: 16px 24px;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+    text-align: left;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.region-help p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0;
+}
+
 /* Footer */
 .footer {
     text-align: center;

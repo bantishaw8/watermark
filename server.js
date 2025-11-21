@@ -67,6 +67,17 @@ app.post('/api/process', upload.single('video'), async (req, res) => {
         const inputPath = req.file.path;
         const outputPath = path.join(OUTPUT_DIR, `${jobId}-output.mp4`);
 
+        // Parse manual regions if provided
+        let manualRegions = null;
+        if (req.body.regions) {
+            try {
+                manualRegions = JSON.parse(req.body.regions);
+                console.log(`Manual regions provided: ${manualRegions.length} region(s)`);
+            } catch (e) {
+                console.error('Failed to parse regions:', e);
+            }
+        }
+
         // Initialize job tracking
         jobs.set(jobId, {
             id: jobId,
@@ -79,11 +90,12 @@ app.post('/api/process', upload.single('video'), async (req, res) => {
             outputFile: null,
             fileSize: 0,
             error: null,
-            startTime: Date.now()
+            startTime: Date.now(),
+            manualRegions
         });
 
         // Start processing in background
-        processVideo(jobId, inputPath, outputPath);
+        processVideo(jobId, inputPath, outputPath, manualRegions);
 
         res.json({
             success: true,
@@ -138,14 +150,14 @@ app.get('/download/:filename', async (req, res) => {
 });
 
 // Process video function
-async function processVideo(jobId, inputPath, outputPath) {
+async function processVideo(jobId, inputPath, outputPath, manualRegions) {
     const job = jobs.get(jobId);
 
     try {
         // Update status: detecting
         job.step = 'detecting';
         job.progress = 30;
-        job.message = 'Detecting watermarks...';
+        job.message = manualRegions ? 'Using manual regions...' : 'Detecting watermarks...';
 
         // Create pipeline with fast, high-quality watermark removal
         const pipeline = new VideoPipeline({
@@ -203,8 +215,13 @@ async function processVideo(jobId, inputPath, outputPath) {
             return result;
         };
 
-        // Process the video
-        const result = await pipeline.process(inputPath);
+        // Process the video with manual regions if provided
+        const processOptions = manualRegions ? {
+            skipDetection: true,
+            manualRegions: manualRegions
+        } : {};
+
+        const result = await pipeline.process(inputPath, processOptions);
 
         // Get output file info
         const stats = await fs.stat(result.outputPath);

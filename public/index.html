@@ -69,6 +69,29 @@
                 </div>
             </section>
 
+            <!-- Region Selection Section -->
+            <section id="regionSection" class="region-section hidden">
+                <div class="region-card">
+                    <h2>Select Watermark Region</h2>
+                    <p class="region-subtitle">Click and drag on the video to mark the watermark area</p>
+
+                    <div class="video-canvas-container">
+                        <video id="regionVideo" crossorigin="anonymous"></video>
+                        <canvas id="regionCanvas"></canvas>
+                    </div>
+
+                    <div class="region-controls">
+                        <button class="btn-secondary" id="clearRegionBtn">Clear Selection</button>
+                        <button class="btn-secondary" id="skipDetectionBtn">Auto-Detect Instead</button>
+                        <button class="btn-primary" id="startProcessBtn" disabled>Start Processing</button>
+                    </div>
+
+                    <div class="region-help">
+                        <p><strong>Tip:</strong> Draw a rectangle around the watermark. You can select multiple regions if needed.</p>
+                    </div>
+                </div>
+            </section>
+
             <!-- Processing Section -->
             <section id="processingSection" class="processing-section hidden">
                 <div class="processing-card">

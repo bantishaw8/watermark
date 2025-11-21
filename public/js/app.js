@@ -1,5 +1,6 @@
 // DOM Elements
 const uploadSection = document.getElementById('uploadSection');
+const regionSection = document.getElementById('regionSection');
 const processingSection = document.getElementById('processingSection');
 const resultSection = document.getElementById('resultSection');
 const uploadArea = document.getElementById('uploadArea');
@@ -17,6 +18,13 @@ const progressPercent = document.getElementById('progressPercent');
 const processingTime = document.getElementById('processingTime');
 const fileSize = document.getElementById('fileSize');
 
+// Region selection elements
+const regionVideo = document.getElementById('regionVideo');
+const regionCanvas = document.getElementById('regionCanvas');
+const clearRegionBtn = document.getElementById('clearRegionBtn');
+const skipDetectionBtn = document.getElementById('skipDetectionBtn');
+const startProcessBtn = document.getElementById('startProcessBtn');
+
 // Steps
 const steps = {
     upload: document.getElementById('step1'),
@@ -30,6 +38,16 @@ let currentFile = null;
 let uploadAbortController = null;
 let processStartTime = null;
 let outputFileName = null;
+let selectedRegions = [];
+let isDrawing = false;
+let startX, startY;
+let ctx;
+
+// Initialize canvas context
+document.addEventListener('DOMContentLoaded', () => {
+    ctx = regionCanvas.getContext('2d');
+    console.log('Video Watermark Remover initialized');
+});
 
 // File Upload Handlers
 browseBtn.addEventListener('click', () => {
@@ -91,6 +109,71 @@ newVideoBtn.addEventListener('click', () => {
     resetToUpload();
 });
 
+// Region Selection Handlers
+clearRegionBtn.addEventListener('click', () => {
+    selectedRegions = [];
+    redrawCanvas();
+    startProcessBtn.disabled = true;
+});
+
+skipDetectionBtn.addEventListener('click', () => {
+    // Skip manual selection, use auto-detect
+    selectedRegions = [];
+    startProcessing();
+});
+
+startProcessBtn.addEventListener('click', () => {
+    startProcessing();
+});
+
+// Canvas drawing handlers
+regionCanvas.addEventListener('mousedown', (e) => {
+    isDrawing = true;
+    const rect = regionCanvas.getBoundingClientRect();
+    startX = e.clientX - rect.left;
+    startY = e.clientY - rect.top;
+});
+
+regionCanvas.addEventListener('mousemove', (e) => {
+    if (!isDrawing) return;
+
+    const rect = regionCanvas.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+
+    redrawCanvas();
+
+    // Draw current rectangle being drawn
+    ctx.strokeStyle = '#667eea';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+});
+
+regionCanvas.addEventListener('mouseup', (e) => {
+    if (!isDrawing) return;
+    isDrawing = false;
+
+    const rect = regionCanvas.getBoundingClientRect();
+    const endX = e.clientX - rect.left;
+    const endY = e.clientY - rect.top;
+
+    const width = Math.abs(endX - startX);
+    const height = Math.abs(endY - startY);
+
+    // Only add region if it's big enough
+    if (width > 20 && height > 20) {
+        const region = {
+            x: Math.min(startX, endX),
+            y: Math.min(startY, endY),
+            width: width,
+            height: height
+        };
+        selectedRegions.push(region);
+        redrawCanvas();
+        startProcessBtn.disabled = false;
+    }
+});
+
 // Main File Handler
 async function handleFileSelect(file) {
     // Validate file
@@ -108,18 +191,55 @@ async function handleFileSelect(file) {
 
     currentFile = file;
 
-    // Show video preview
+    // Show region selection screen
     const videoUrl = URL.createObjectURL(file);
-    videoPreview.src = videoUrl;
-    videoName.textContent = file.name;
-    videoDetails.textContent = formatFileSize(file.size);
+    regionVideo.src = videoUrl;
 
-    // Switch to processing view
+    // Wait for video to load
+    regionVideo.onloadedmetadata = () => {
+        // Set canvas size to match video
+        regionCanvas.width = regionVideo.videoWidth;
+        regionCanvas.height = regionVideo.videoHeight;
+
+        // Seek to 2 seconds for a better frame
+        regionVideo.currentTime = 2;
+    };
+
+    showSection('region');
+}
+
+// Redraw canvas with all regions
+function redrawCanvas() {
+    ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
+
+    // Draw all selected regions
+    selectedRegions.forEach((region, index) => {
+        ctx.strokeStyle = '#667eea';
+        ctx.fillStyle = 'rgba(102, 126, 234, 0.2)';
+        ctx.lineWidth = 3;
+
+        ctx.fillRect(region.x, region.y, region.width, region.height);
+        ctx.strokeRect(region.x, region.y, region.width, region.height);
+
+        // Draw region number
+        ctx.fillStyle = '#667eea';
+        ctx.font = 'bold 20px Arial';
+        ctx.fillText(`${index + 1}`, region.x + 10, region.y + 30);
+    });
+}
+
+// Start Processing
+async function startProcessing() {
     showSection('processing');
 
-    // Start processing
+    // Setup video preview
+    const videoUrl = URL.createObjectURL(currentFile);
+    videoPreview.src = videoUrl;
+    videoName.textContent = currentFile.name;
+    videoDetails.textContent = formatFileSize(currentFile.size);
+
     processStartTime = Date.now();
-    await uploadAndProcess(file);
+    await uploadAndProcess(currentFile);
 }
 
 // Upload and Process
@@ -130,6 +250,22 @@ async function uploadAndProcess(file) {
         // Create form data
         const formData = new FormData();
         formData.append('video', file);
+
+        // Add manual regions if any
+        if (selectedRegions.length > 0) {
+            // Convert canvas coordinates to video coordinates
+            const scaleX = regionVideo.videoWidth / regionCanvas.width;
+            const scaleY = regionVideo.videoHeight / regionCanvas.height;
+
+            const videoRegions = selectedRegions.map(r => ({
+                x: Math.floor(r.x * scaleX),
+                y: Math.floor(r.y * scaleY),
+                width: Math.floor(r.width * scaleX),
+                height: Math.floor(r.height * scaleY)
+            }));
+
+            formData.append('regions', JSON.stringify(videoRegions));
+        }
 
         // Step 1: Upload
         updateStep('upload', 'active');
@@ -232,12 +368,16 @@ async function monitorProcessing(jobId) {
 // UI Update Functions
 function showSection(section) {
     uploadSection.classList.add('hidden');
+    regionSection.classList.add('hidden');
     processingSection.classList.add('hidden');
     resultSection.classList.add('hidden');
 
     switch (section) {
         case 'upload':
             uploadSection.classList.remove('hidden');
+            break;
+        case 'region':
+            regionSection.classList.remove('hidden');
             break;
         case 'processing':
             processingSection.classList.remove('hidden');
@@ -288,11 +428,19 @@ function resetToUpload() {
     uploadAbortController = null;
     processStartTime = null;
     outputFileName = null;
+    selectedRegions = [];
+    isDrawing = false;
 
     // Reset UI
     fileInput.value = '';
     videoPreview.src = '';
+    regionVideo.src = '';
     updateProgress(0, 'Uploading...');
+
+    // Reset canvas
+    if (ctx) {
+        ctx.clearRect(0, 0, regionCanvas.width, regionCanvas.height);
+    }
 
     // Reset steps
     Object.values(steps).forEach(step => {
@@ -311,8 +459,3 @@ function formatFileSize(bytes) {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Video Watermark Remover initialized');
-});
