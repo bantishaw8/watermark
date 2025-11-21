@@ -147,7 +147,7 @@ async function processVideo(jobId, inputPath, outputPath) {
         job.progress = 30;
         job.message = 'Detecting watermarks...';
 
-        // Create pipeline with advanced content-aware watermark removal
+        // Create pipeline with fast, high-quality watermark removal
         const pipeline = new VideoPipeline({
             output: {
                 directory: OUTPUT_DIR,
@@ -160,13 +160,14 @@ async function processVideo(jobId, inputPath, outputPath) {
                     sensitivity: 0.7
                 },
                 removal: {
-                    method: 'content-aware',  // Use advanced content-aware fill for complete removal
-                    iterations: 3
+                    method: 'inpaint',  // Use balanced inpainting (faster than content-aware)
+                    iterations: 2
                 }
             },
             enhancement: {
-                enabled: true,
-                denoise: true,
+                enabled: false,  // Disable enhancement for faster processing
+                upscale: false,
+                denoise: false,
                 sharpen: false
             },
             processing: {

@@ -39,14 +39,31 @@ npm start process video.mp4
 - **High-Quality Output**: Configurable quality settings for optimal results
 - **Easy CLI Interface**: Simple command-line interface for all operations
 
-## 🚀 Advanced Removal Methods
+## 🚀 Removal Methods & Speed
 
-The system offers **4 different removal methods** for complete watermark removal:
+The system offers **4 different removal methods** optimized for different use cases:
 
-1. **Content-Aware Fill** ⭐ (Recommended) - Uses edge-preserving inpainting for the best results
-2. **Advanced Inpainting** - Multi-stage processing with progressive filtering
-3. **Multi-Pass Removal** - 3+ passes for stubborn watermarks that need extra attention
-4. **Basic Removal** - Fast processing for simple cases
+| Method | Speed | Quality | Best For |
+|--------|-------|---------|----------|
+| **Inpaint** ⭐ (Default) | Fast | Excellent | General use, balanced performance |
+| **Content-Aware Fill** | Slow | Best | When quality is critical |
+| **Multi-Pass** | Slowest | Best | Stubborn watermarks |
+| **Basic** | Fastest | Good | Simple watermarks, quick tests |
+
+### ⚡ Web UI Default Settings (Optimized for Speed)
+- **Method**: Inpaint (balanced, fast)
+- **Preset**: Medium (~2-5 min for typical video)
+- **Enhancement**: Disabled for faster processing
+- **Result**: Complete watermark removal in minutes!
+
+### 🎯 CLI Advanced Settings
+For maximum quality (slower):
+```json
+{
+  "watermark": {"removal": {"method": "content-aware"}},
+  "enhancement": {"enabled": true}
+}
+```
 
 **📖 See [REMOVAL_METHODS.md](REMOVAL_METHODS.md) for detailed documentation on each method and how to achieve the best results.**
 

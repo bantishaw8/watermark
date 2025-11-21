@@ -36,7 +36,7 @@ export class WatermarkRemover {
       command
         .outputOptions([
           '-c:v libx264',
-          '-preset slow',
+          '-preset medium',
           '-crf 18',
           '-c:a copy',
           '-movflags +faststart'
@@ -105,36 +105,30 @@ export class WatermarkRemover {
   }
 
   async removeWithInpainting(videoPath, watermarkRegions, outputPath, tempDir) {
-    logger.info('Using advanced inpainting method...');
+    logger.info('Using fast inpainting method...');
 
-    // Multi-stage inpainting process for better quality
-    // This uses FFmpeg's advanced filtering capabilities to achieve better results
+    // Optimized inpainting for speed while maintaining quality
+    // This uses FFmpeg's advanced filtering with balanced performance
 
     return new Promise((resolve, reject) => {
       const filters = [];
 
       watermarkRegions.forEach((region) => {
-        // Create a sophisticated inpainting filter chain for each region
-        const expandedRegion = this.expandRegion(region, 8);
+        // Create inpainting filter chain for each region
+        const expandedRegion = this.expandRegion(region, 6);
 
-        // Apply delogo with larger band for smoother inpainting
+        // Apply delogo with good band for smooth inpainting
         filters.push(
-          `delogo=x=${expandedRegion.x}:y=${expandedRegion.y}:w=${expandedRegion.width}:h=${expandedRegion.height}:band=15:show=0`
+          `delogo=x=${expandedRegion.x}:y=${expandedRegion.y}:w=${expandedRegion.width}:h=${expandedRegion.height}:band=12:show=0`
         );
       });
 
-      // Post-processing filters for better quality
-      // 1. Edge enhancement to restore details
-      filters.push('unsharp=7:7:1.5:7:7:0.0');
+      // Optimized post-processing filters
+      // 1. Light denoise to remove artifacts
+      filters.push('hqdn3d=1.5:1.5:6:6');
 
-      // 2. Slight blur to blend inpainted areas
-      filters.push('gblur=sigma=0.5:steps=1');
-
-      // 3. Denoise to remove artifacts
-      filters.push('hqdn3d=2:2:8:8');
-
-      // 4. Final sharpening pass
-      filters.push('unsharp=5:5:0.8:5:5:0.0');
+      // 2. Edge enhancement to restore details
+      filters.push('unsharp=5:5:1.0:5:5:0.0');
 
       const filterString = filters.join(',');
 
@@ -142,11 +136,9 @@ export class WatermarkRemover {
         .videoFilters(filterString)
         .outputOptions([
           '-c:v libx264',
-          '-preset slower',  // Use slower preset for better quality
-          '-crf 17',         // Lower CRF for higher quality
+          '-preset medium',  // Balanced preset for speed
+          '-crf 18',         // Good quality
           '-pix_fmt yuv420p',
-          '-profile:v high',
-          '-level 4.1',
           '-c:a copy',
           '-movflags +faststart'
         ])
@@ -160,7 +152,7 @@ export class WatermarkRemover {
           }
         })
         .on('end', () => {
-          logger.success('Advanced inpainting completed');
+          logger.success('Fast inpainting completed');
           resolve(outputPath);
         })
         .on('error', (err, stdout, stderr) => {
