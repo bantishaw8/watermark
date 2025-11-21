@@ -47,6 +47,28 @@ export class VideoPipeline {
         watermarkRegions = options.manualRegions || [];
       } else {
         watermarkRegions = await this.detector.detect(videoPath, detectionTempDir);
+
+        // Fallback: If no watermarks detected, use common positions
+        if (watermarkRegions.length === 0) {
+          logger.warning('No watermarks detected automatically');
+          logger.info('Using fallback: processing common watermark positions');
+
+          // Get video dimensions for positioning
+          const metadata = await this.detector.getVideoMetadata(videoPath);
+          const videoStream = metadata.streams.find(s => s.codec_type === 'video');
+
+          if (videoStream) {
+            const width = videoStream.width;
+            const height = videoStream.height;
+
+            // Apply watermark removal to most common positions
+            watermarkRegions = [
+              { name: 'bottom-right', x: Math.floor(width * 0.70), y: Math.floor(height * 0.87), width: Math.floor(width * 0.28), height: Math.floor(height * 0.11) },
+              { name: 'top-right', x: Math.floor(width * 0.70), y: Math.floor(height * 0.02), width: Math.floor(width * 0.28), height: Math.floor(height * 0.11) }
+            ];
+            logger.info(`Targeting common watermark positions: ${watermarkRegions.map(r => r.name).join(', ')}`);
+          }
+        }
       }
 
       // Step 3: Remove watermarks

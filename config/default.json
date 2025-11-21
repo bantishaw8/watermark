@@ -16,7 +16,7 @@
   "watermark": {
     "detection": {
       "method": "auto",
-      "sensitivity": 0.7,
+      "sensitivity": 0.3,
       "minSize": 20,
       "maxSize": 500
     },

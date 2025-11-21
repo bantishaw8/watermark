@@ -157,7 +157,8 @@ async function processVideo(jobId, inputPath, outputPath) {
             watermark: {
                 detection: {
                     method: 'auto',
-                    sensitivity: 0.7
+                    sensitivity: 0.3,  // Lower sensitivity for better detection
+                    sampleFrames: 15   // More frames for better accuracy
                 },
                 removal: {
                     method: 'inpaint',  // Use balanced inpainting (faster than content-aware)

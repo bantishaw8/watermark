@@ -108,13 +108,17 @@ export class WatermarkDetector {
   }
 
   async detectRegions(framePath, width, height) {
-    // Common watermark positions to check
+    // Comprehensive watermark positions to check (9 regions instead of 5)
     const positions = [
-      { name: 'top-left', x: 0, y: 0, width: Math.floor(width * 0.25), height: Math.floor(height * 0.15) },
-      { name: 'top-right', x: Math.floor(width * 0.75), y: 0, width: Math.floor(width * 0.25), height: Math.floor(height * 0.15) },
-      { name: 'bottom-left', x: 0, y: Math.floor(height * 0.85), width: Math.floor(width * 0.25), height: Math.floor(height * 0.15) },
-      { name: 'bottom-right', x: Math.floor(width * 0.75), y: Math.floor(height * 0.85), width: Math.floor(width * 0.25), height: Math.floor(height * 0.15) },
-      { name: 'center', x: Math.floor(width * 0.4), y: Math.floor(height * 0.45), width: Math.floor(width * 0.2), height: Math.floor(height * 0.1) }
+      { name: 'top-left', x: Math.floor(width * 0.02), y: Math.floor(height * 0.02), width: Math.floor(width * 0.30), height: Math.floor(height * 0.12) },
+      { name: 'top-center', x: Math.floor(width * 0.35), y: Math.floor(height * 0.02), width: Math.floor(width * 0.30), height: Math.floor(height * 0.12) },
+      { name: 'top-right', x: Math.floor(width * 0.68), y: Math.floor(height * 0.02), width: Math.floor(width * 0.30), height: Math.floor(height * 0.12) },
+      { name: 'middle-left', x: Math.floor(width * 0.02), y: Math.floor(height * 0.44), width: Math.floor(width * 0.25), height: Math.floor(height * 0.12) },
+      { name: 'center', x: Math.floor(width * 0.35), y: Math.floor(height * 0.44), width: Math.floor(width * 0.30), height: Math.floor(height * 0.12) },
+      { name: 'middle-right', x: Math.floor(width * 0.73), y: Math.floor(height * 0.44), width: Math.floor(width * 0.25), height: Math.floor(height * 0.12) },
+      { name: 'bottom-left', x: Math.floor(width * 0.02), y: Math.floor(height * 0.86), width: Math.floor(width * 0.30), height: Math.floor(height * 0.12) },
+      { name: 'bottom-center', x: Math.floor(width * 0.35), y: Math.floor(height * 0.86), width: Math.floor(width * 0.30), height: Math.floor(height * 0.12) },
+      { name: 'bottom-right', x: Math.floor(width * 0.68), y: Math.floor(height * 0.86), width: Math.floor(width * 0.30), height: Math.floor(height * 0.12) }
     ];
 
     const detectedRegions = [];
@@ -127,16 +131,23 @@ export class WatermarkDetector {
           .raw()
           .toBuffer({ resolveWithObject: true });
 
-        // Analyze variance (watermarks typically have distinct patterns)
+        // Analyze both variance and edge density for better detection
         const variance = this.calculateVariance(region.data);
+        const edgeDensity = this.calculateEdgeDensity(region.data, region.info);
 
-        // If variance is high enough, this might be a watermark
-        if (variance > this.config.sensitivity) {
+        // Combined score for better detection
+        const score = (variance * 0.6) + (edgeDensity * 0.4);
+
+        // Lower threshold for better detection
+        if (score > this.config.sensitivity * 0.5) {
           detectedRegions.push({
             ...pos,
             variance,
-            confidence: Math.min(variance, 1.0)
+            edgeDensity,
+            score,
+            confidence: Math.min(score, 1.0)
           });
+          logger.debug(`Detected potential watermark in ${pos.name}: score=${score.toFixed(3)}`);
         }
       } catch (error) {
         // Skip this region if extraction fails
@@ -145,6 +156,33 @@ export class WatermarkDetector {
     }
 
     return detectedRegions;
+  }
+
+  calculateEdgeDensity(pixelData, info) {
+    // Calculate edge density (watermarks often have strong edges)
+    const { width, height, channels } = info;
+    let edgeCount = 0;
+    const threshold = 30;
+
+    // Simple edge detection using differences
+    for (let y = 0; y < height - 1; y++) {
+      for (let x = 0; x < width - 1; x++) {
+        const idx = (y * width + x) * channels;
+        const idxRight = (y * width + (x + 1)) * channels;
+        const idxDown = ((y + 1) * width + x) * channels;
+
+        // Calculate horizontal and vertical gradients
+        const gradX = Math.abs(pixelData[idx] - pixelData[idxRight]);
+        const gradY = Math.abs(pixelData[idx] - pixelData[idxDown]);
+
+        if (gradX > threshold || gradY > threshold) {
+          edgeCount++;
+        }
+      }
+    }
+
+    const totalPixels = width * height;
+    return Math.min((edgeCount / totalPixels) * 10, 1.0);
   }
 
   calculateVariance(pixelData) {
@@ -180,12 +218,15 @@ export class WatermarkDetector {
       });
     });
 
-    // Find regions that appear consistently (in most frames)
+    // Find regions that appear consistently (in at least 40% of frames - more lenient)
     const consistentRegions = [];
-    const threshold = Math.floor(detections.length * 0.6); // Appear in 60% of frames
+    const threshold = Math.max(2, Math.floor(detections.length * 0.4)); // At least 40% or 2 frames
 
     for (const [name, regions] of Object.entries(regionsByPosition)) {
       if (regions.length >= threshold) {
+        // Calculate average confidence
+        const avgConfidence = regions.reduce((sum, r) => sum + (r.score || r.confidence), 0) / regions.length;
+
         // Average the region coordinates
         const avgRegion = {
           name,
@@ -193,11 +234,16 @@ export class WatermarkDetector {
           y: Math.floor(regions.reduce((sum, r) => sum + r.y, 0) / regions.length),
           width: Math.floor(regions.reduce((sum, r) => sum + r.width, 0) / regions.length),
           height: Math.floor(regions.reduce((sum, r) => sum + r.height, 0) / regions.length),
-          confidence: regions.reduce((sum, r) => sum + r.confidence, 0) / regions.length
+          confidence: avgConfidence,
+          detectionCount: regions.length
         };
         consistentRegions.push(avgRegion);
+        logger.info(`Found consistent watermark in ${name}: detected in ${regions.length}/${detections.length} frames (confidence: ${avgConfidence.toFixed(2)})`);
       }
     }
+
+    // Sort by confidence descending
+    consistentRegions.sort((a, b) => b.confidence - a.confidence);
 
     return consistentRegions;
   }
