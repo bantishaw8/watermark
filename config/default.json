@@ -21,7 +21,7 @@
       "maxSize": 500
     },
     "removal": {
-      "method": "inpaint",
+      "method": "content-aware",
       "iterations": 3,
       "blendEdges": true
     }

@@ -30,11 +30,25 @@ npm start process video.mp4
 - **📊 Real-time Progress**: Watch processing steps in real-time
 - **Multi-Platform Video Download**: Download videos from YouTube, Twitter, Facebook, Instagram
 - **Automatic Watermark Detection**: AI-powered detection of watermarks in various positions
-- **Intelligent Removal**: Uses FFmpeg's delogo filter and advanced inpainting techniques
+- **✨ Complete Watermark Removal**: Advanced inpainting that **completely removes** watermarks (not just blur!)
+  - **Content-aware fill** for professional results
+  - **Multi-pass processing** for stubborn watermarks
+  - **Edge-preserving algorithms** for seamless blending
 - **Video Enhancement**: Upscale to HD, denoise, sharpen, and color correction
 - **Batch Processing**: Process multiple videos at once
 - **High-Quality Output**: Configurable quality settings for optimal results
 - **Easy CLI Interface**: Simple command-line interface for all operations
+
+## 🚀 Advanced Removal Methods
+
+The system offers **4 different removal methods** for complete watermark removal:
+
+1. **Content-Aware Fill** ⭐ (Recommended) - Uses edge-preserving inpainting for the best results
+2. **Advanced Inpainting** - Multi-stage processing with progressive filtering
+3. **Multi-Pass Removal** - 3+ passes for stubborn watermarks that need extra attention
+4. **Basic Removal** - Fast processing for simple cases
+
+**📖 See [REMOVAL_METHODS.md](REMOVAL_METHODS.md) for detailed documentation on each method and how to achieve the best results.**
 
 ## Prerequisites
 

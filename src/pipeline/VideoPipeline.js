@@ -52,7 +52,21 @@ export class VideoPipeline {
       // Step 3: Remove watermarks
       logger.step(3, 5, 'Removing watermarks');
       const removalOutput = path.join(this.tempDir, 'removed.mp4');
-      await this.remover.remove(videoPath, watermarkRegions, removalOutput);
+
+      // Use advanced removal method based on configuration
+      const removalMethod = this.config.watermark?.removal?.method || 'inpaint';
+      const removalTempDir = path.join(this.tempDir, 'removal');
+      await FileSystem.ensureDirectory(removalTempDir);
+
+      if (removalMethod === 'multipass') {
+        await this.remover.removeMultiPass(videoPath, watermarkRegions, removalOutput, removalTempDir);
+      } else if (removalMethod === 'content-aware') {
+        await this.remover.removeWithContentAwareFill(videoPath, watermarkRegions, removalOutput);
+      } else if (removalMethod === 'inpaint') {
+        await this.remover.removeWithInpainting(videoPath, watermarkRegions, removalOutput, removalTempDir);
+      } else {
+        await this.remover.remove(videoPath, watermarkRegions, removalOutput);
+      }
 
       // Step 4: Enhance video quality
       logger.step(4, 5, 'Enhancing video quality');
