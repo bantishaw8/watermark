@@ -66,7 +66,7 @@ services:
     networks:
       - watermark-network
 
-  # Background Worker (scalable - no container_name to allow multiple replicas)
+  # Background Worker - Scale with: docker-compose up -d --scale worker=3
   worker:
     build:
       context: .
@@ -87,8 +87,6 @@ services:
     restart: unless-stopped
     networks:
       - watermark-network
-    deploy:
-      replicas: 2
 
   # Prometheus for metrics
   prometheus:
