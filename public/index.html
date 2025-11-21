@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Watermark Remover - Remove Watermarks from Videos</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="32" height="32" rx="8" fill="url(#gradient)"/>
+                    <path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
+                    <defs>
+                        <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32">
+                            <stop offset="0%" stop-color="#667eea"/>
+                            <stop offset="100%" stop-color="#764ba2"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span>Video Watermark Remover</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section id="uploadSection" class="upload-section">
+                <div class="upload-header">
+                    <h1>Remove Watermarks from Videos</h1>
+                    <p class="subtitle">Upload your video and let AI remove watermarks automatically</p>
+                </div>
+
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept="video/*" hidden>
+                    <div class="upload-content">
+                        <div class="upload-icon">
+                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                                <circle cx="40" cy="40" r="38" stroke="#667eea" stroke-width="3" stroke-dasharray="8 8"/>
+                                <path d="M40 25V55M25 40H55" stroke="#667eea" stroke-width="3" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h3>Drop your video here</h3>
+                        <p>or</p>
+                        <button class="btn-primary" id="browseBtn">Browse Files</button>
+                        <p class="upload-info">Supports MP4, MOV, AVI, WebM • Max 500MB</p>
+                    </div>
+                </div>
+
+                <div class="features">
+                    <div class="feature-item">
+                        <div class="feature-icon">⚡</div>
+                        <h4>Fast Processing</h4>
+                        <p>AI-powered detection and removal</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🎯</div>
+                        <h4>High Accuracy</h4>
+                        <p>Precisely detects watermark regions</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">✨</div>
+                        <h4>Quality Preserved</h4>
+                        <p>Maintains original video quality</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Processing Section -->
+            <section id="processingSection" class="processing-section hidden">
+                <div class="processing-card">
+                    <div class="video-preview">
+                        <video id="videoPreview" controls></video>
+                        <div class="video-info">
+                            <h3 id="videoName">video.mp4</h3>
+                            <p id="videoDetails">Preparing...</p>
+                        </div>
+                    </div>
+
+                    <div class="progress-container">
+                        <div class="progress-header">
+                            <span id="progressText">Uploading...</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+
+                    <div class="processing-steps">
+                        <div class="step" id="step1">
+                            <div class="step-icon">📤</div>
+                            <span>Uploading</span>
+                            <div class="step-status"></div>
+                        </div>
+                        <div class="step" id="step2">
+                            <div class="step-icon">🔍</div>
+                            <span>Detecting</span>
+                            <div class="step-status"></div>
+                        </div>
+                        <div class="step" id="step3">
+                            <div class="step-icon">✂️</div>
+                            <span>Removing</span>
+                            <div class="step-status"></div>
+                        </div>
+                        <div class="step" id="step4">
+                            <div class="step-icon">✨</div>
+                            <span>Enhancing</span>
+                            <div class="step-status"></div>
+                        </div>
+                    </div>
+
+                    <button class="btn-secondary" id="cancelBtn">Cancel</button>
+                </div>
+            </section>
+
+            <!-- Result Section -->
+            <section id="resultSection" class="result-section hidden">
+                <div class="result-card">
+                    <div class="success-icon">
+                        <svg width="80" height="80" viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="38" fill="#10b981" opacity="0.1"/>
+                            <circle cx="40" cy="40" r="32" fill="#10b981"/>
+                            <path d="M25 40L35 50L55 30" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        </svg>
+                    </div>
+                    <h2>Watermark Removed Successfully!</h2>
+                    <p class="result-info">Your video is ready to download</p>
+
+                    <div class="result-actions">
+                        <button class="btn-primary btn-large" id="downloadBtn">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12L6 8h3V2h2v6h3l-4 4zM2 14h16v4H2v-4z"/>
+                            </svg>
+                            Download Video
+                        </button>
+                        <button class="btn-secondary" id="newVideoBtn">Process Another Video</button>
+                    </div>
+
+                    <div class="result-stats">
+                        <div class="stat">
+                            <strong id="processingTime">--</strong>
+                            <span>Processing Time</span>
+                        </div>
+                        <div class="stat">
+                            <strong id="fileSize">--</strong>
+                            <span>File Size</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 Video Watermark Remover. For personal use only.</p>
+        </footer>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

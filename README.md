@@ -2,8 +2,32 @@
 
 Advanced video watermark removal and enhancement tool with multi-platform support. Process local videos or download directly from YouTube, Twitter, Facebook, and Instagram.
 
+## 🌐 Two Ways to Use
+
+### Web Interface (Recommended)
+Beautiful, modern web UI with drag-and-drop support, real-time progress tracking, and one-click downloads.
+
+```bash
+npm install
+npm run server
+```
+
+Then open http://localhost:3000 in your browser!
+
+**See [WEB_UI.md](WEB_UI.md) for complete web interface documentation.**
+
+### Command Line Interface (CLI)
+Powerful CLI for advanced users and automation.
+
+```bash
+npm start process video.mp4
+```
+
 ## Features
 
+- **🎨 Modern Web UI**: Clean, professional interface with smooth animations
+- **📤 Drag & Drop**: Easy video upload with visual feedback
+- **📊 Real-time Progress**: Watch processing steps in real-time
 - **Multi-Platform Video Download**: Download videos from YouTube, Twitter, Facebook, Instagram
 - **Automatic Watermark Detection**: AI-powered detection of watermarks in various positions
 - **Intelligent Removal**: Uses FFmpeg's delogo filter and advanced inpainting techniques
