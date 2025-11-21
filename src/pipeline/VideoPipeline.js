@@ -2,7 +2,9 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { VideoDownloader } from '../downloader/VideoDownloader.js';
 import { WatermarkDetector } from '../detector/WatermarkDetector.js';
+import { WatermarkDetectorAI } from '../detector/WatermarkDetectorAI.js';
 import { WatermarkRemover } from '../remover/WatermarkRemover.js';
+import { WatermarkRemoverAI } from '../remover/WatermarkRemoverAI.js';
 import { VideoEnhancer } from '../enhancer/VideoEnhancer.js';
 import { FileSystem } from '../utils/fileSystem.js';
 import logger from '../utils/logger.js';
@@ -11,10 +13,29 @@ export class VideoPipeline {
   constructor(config = {}) {
     this.config = config;
 
-    // Initialize modules
+    // Determine if AI should be used
+    const useAI = config.useAI !== false && process.env.USE_AI !== 'false';
+
+    // Initialize modules with AI support
     this.downloader = new VideoDownloader(config.downloader || {});
-    this.detector = new WatermarkDetector(config.watermark?.detection || {});
-    this.remover = new WatermarkRemover(config.watermark?.removal || {});
+
+    // Use AI-enhanced detector/remover if enabled
+    if (useAI) {
+      logger.info('Initializing with AI-enhanced watermark detection and removal');
+      this.detector = new WatermarkDetectorAI({
+        ...(config.watermark?.detection || {}),
+        useAI: true
+      });
+      this.remover = new WatermarkRemoverAI({
+        ...(config.watermark?.removal || {}),
+        useAI: true
+      });
+    } else {
+      logger.info('Initializing with legacy watermark detection and removal');
+      this.detector = new WatermarkDetector(config.watermark?.detection || {});
+      this.remover = new WatermarkRemover(config.watermark?.removal || {});
+    }
+
     this.enhancer = new VideoEnhancer(config.enhancement || {});
 
     // Setup directories

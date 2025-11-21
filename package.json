@@ -7,7 +7,13 @@
   "scripts": {
     "start": "node cli.js",
     "dev": "node --watch cli.js",
-    "test": "node --test"
+    "test": "node --test",
+    "ai-service": "cd ai-service && python3 main.py",
+    "api": "node src/api/server.js",
+    "worker": "node src/queue/worker.js",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
   },
   "keywords": ["video", "watermark", "removal", "processing", "enhancement"],
   "author": "",
@@ -22,7 +28,19 @@
     "@ffprobe-installer/ffprobe": "^1.4.1",
     "progress-stream": "^2.0.0",
     "sharp": "^0.33.1",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "bullmq": "^4.15.0",
+    "ioredis": "^5.3.2",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "winston": "^3.11.0",
+    "dotenv": "^16.3.1",
+    "prom-client": "^15.1.0",
+    "joi": "^17.11.0",
+    "uuid": "^9.0.1",
+    "retry": "^0.13.1"
   },
   "devDependencies": {},
   "engines": {

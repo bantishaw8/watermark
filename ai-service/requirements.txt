@@ -1,0 +1,50 @@
+# AI Service Dependencies for Enterprise-Grade Watermark Removal
+
+# Deep Learning Framework
+torch==2.1.0
+torchvision==0.16.0
+
+# AI Models
+ultralytics==8.0.220  # YOLOv8 for watermark detection
+opencv-python==4.8.1.78
+opencv-contrib-python==4.8.1.78
+
+# Image Processing
+pillow==10.1.0
+scikit-image==0.22.0
+numpy==1.24.3
+
+# Video Processing
+moviepy==1.0.3
+imageio==2.31.6
+imageio-ffmpeg==0.4.9
+
+# LaMa Inpainting Model
+simple-lama-inpainting==0.1.1
+
+# Segmentation Models
+segment-anything==1.0  # SAM for precise segmentation
+timm==0.9.12  # For model backbones
+
+# API & Communication
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+httpx==0.25.1
+python-multipart==0.0.6
+
+# Async & Queue Support
+redis==5.0.1
+celery==5.3.4
+
+# Monitoring & Logging
+prometheus-client==0.19.0
+python-json-logger==2.0.7
+
+# Utilities
+tqdm==4.66.1
+requests==2.31.0
+aiofiles==23.2.1
+
+# GPU Acceleration (optional)
+# onnxruntime-gpu==1.16.3  # Uncomment for GPU support
