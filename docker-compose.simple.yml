@@ -1,5 +1,8 @@
+# Simple Docker Compose (No GPU, Single Worker)
+# Use this if you don't have GPU or want a simpler setup
+
 services:
-  # AI Service (Python)
+  # AI Service (Python) - CPU only
   ai-service:
     build:
       context: ./ai-service
@@ -10,20 +13,13 @@ services:
     environment:
       - AI_SERVICE_HOST=0.0.0.0
       - AI_SERVICE_PORT=8000
-      - AI_SERVICE_WORKERS=2
+      - AI_SERVICE_WORKERS=1
       - LOG_LEVEL=INFO
     volumes:
       - ./ai-service/models:/app/models
       - ./ai-service/temp:/app/temp
       - ./ai-service/logs:/app/logs
       - ./videos:/videos
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
     restart: unless-stopped
     networks:
       - watermark-network
@@ -66,11 +62,12 @@ services:
     networks:
       - watermark-network
 
-  # Background Worker (scalable - no container_name to allow multiple replicas)
+  # Background Worker - Single Instance
   worker:
     build:
       context: .
       dockerfile: Dockerfile.worker
+    container_name: watermark-worker
     environment:
       - AI_SERVICE_URL=http://ai-service:8000
       - REDIS_HOST=redis
@@ -87,8 +84,6 @@ services:
     restart: unless-stopped
     networks:
       - watermark-network
-    deploy:
-      replicas: 2
 
   # Prometheus for metrics
   prometheus:
@@ -117,7 +112,6 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./monitoring/grafana:/etc/grafana/provisioning
     depends_on:
       - prometheus
     restart: unless-stopped
